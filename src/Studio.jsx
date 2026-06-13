@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { studioConfig } from "./studio.config";
 import { defaultContent, fetchPublished, saveDraft } from "./content-context";
 
@@ -7,11 +7,26 @@ async function sha256Hex(str) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
-function toBase64Utf8(str) {
-  const bytes = new TextEncoder().encode(str);
+function bytesToBase64(bytes) {
   let bin = "";
   for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
   return btoa(bin);
+}
+const toBase64Utf8 = (str) => bytesToBase64(new TextEncoder().encode(str));
+const fileToBase64 = async (file) => bytesToBase64(new Uint8Array(await file.arrayBuffer()));
+
+// commit a file (text or binary, already base64) to the GitHub repo via the Contents API
+async function commitFile(gh, token, path, base64, message) {
+  const api = `https://api.github.com/repos/${gh.owner}/${gh.repo}/contents/${path}`;
+  const headers = { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" };
+  let sha;
+  const getRes = await fetch(`${api}?ref=${encodeURIComponent(gh.branch)}&t=${Date.now()}`, { headers });
+  if (getRes.ok) sha = (await getRes.json()).sha;
+  else if (getRes.status !== 404) throw new Error(`GET ${getRes.status} — ${(await getRes.json()).message || ""}`);
+  const body = { message, content: base64, branch: gh.branch, ...(sha ? { sha } : {}) };
+  const putRes = await fetch(api, { method: "PUT", headers, body: JSON.stringify(body) });
+  if (!putRes.ok) throw new Error(`PUT ${putRes.status} — ${(await putRes.json()).message || ""}`);
+  return true;
 }
 const lsGet = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* ignore */ } };
@@ -131,7 +146,11 @@ function Editor() {
   const [token, setToken] = useState(() => localStorage.getItem("folio:ghToken") || "");
   const [status, setStatus] = useState(null); // { kind, msg }
   const [busy, setBusy] = useState(false);
+  const [resumeFile, setResumeFile] = useState(null);
+  const [resumePath, setResumePath] = useState(() => lsGet("folio:resumePath", "public/resume.pdf"));
   const iframeRef = useRef(null);
+
+  useEffect(() => { lsSet("folio:resumePath", resumePath); }, [resumePath]);
 
   const set = (k, v) => setDraft((d) => ({ ...d, [k]: v }));
   const setProfile = (k, v) => setDraft((d) => ({ ...d, profile: { ...d.profile, [k]: v } }));
@@ -192,19 +211,29 @@ function Editor() {
     if (!token) return setStatus({ kind: "err", msg: "Paste a GitHub token first." });
     setBusy(true);
     setStatus({ kind: "info", msg: "Publishing…" });
-    const api = `https://api.github.com/repos/${gh.owner}/${gh.repo}/contents/${gh.path}`;
-    const headers = { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" };
     try {
-      let sha;
-      const getRes = await fetch(`${api}?ref=${encodeURIComponent(gh.branch)}&t=${Date.now()}`, { headers });
-      if (getRes.ok) sha = (await getRes.json()).sha;
-      else if (getRes.status !== 404) throw new Error(`GET ${getRes.status} — ${(await getRes.json()).message || ""}`);
-      const json = JSON.stringify(draft, null, 2);
-      const body = { message: `studio: update content (${new Date().toISOString()})`, content: toBase64Utf8(json), branch: gh.branch, ...(sha ? { sha } : {}) };
-      const putRes = await fetch(api, { method: "PUT", headers, body: JSON.stringify(body) });
-      if (!putRes.ok) throw new Error(`PUT ${putRes.status} — ${(await putRes.json()).message || ""}`);
+      await commitFile(gh, token, gh.path, toBase64Utf8(JSON.stringify(draft, null, 2)), `studio: update content (${new Date().toISOString()})`);
       saveDraft(draft);
       setStatus({ kind: "ok", msg: "Published ✓ — live within a few minutes (raw cache ~5 min)." });
+    } catch (e) {
+      setStatus({ kind: "err", msg: String(e.message || e) });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // upload a résumé PDF → commit it to the repo (Cloudflare Pages rebuilds on push → live)
+  const uploadResume = async () => {
+    if (!token) return setStatus({ kind: "err", msg: "Paste a GitHub token first." });
+    if (!resumeFile) return setStatus({ kind: "err", msg: "Choose a PDF to upload." });
+    if (resumeFile.type && resumeFile.type !== "application/pdf") return setStatus({ kind: "err", msg: "That file isn't a PDF." });
+    if (resumeFile.size > 8 * 1024 * 1024) return setStatus({ kind: "err", msg: "PDF is over 8 MB — GitHub Contents API limit. Compress it." });
+    setBusy(true);
+    setStatus({ kind: "info", msg: `Uploading ${resumeFile.name}…` });
+    try {
+      await commitFile(gh, token, resumePath, await fileToBase64(resumeFile), `studio: update résumé (${new Date().toISOString()})`);
+      const served = "/" + resumePath.replace(/^public\//, "");
+      setStatus({ kind: "ok", msg: `Résumé committed to ${resumePath}. Cloudflare Pages rebuilds on push → live at ${served} in ~1 min. (Make sure Profile → résumé url is "${served}".)` });
     } catch (e) {
       setStatus({ kind: "err", msg: String(e.message || e) });
     } finally {
@@ -256,6 +285,31 @@ function Editor() {
             </div>
             <Text label="blurb (about)" area value={draft.profile?.blurb} onChange={(v) => setProfile("blurb", v)} />
             <ListEditor label="links" items={draft.profile?.links} fields={[{ k: "label" }, { k: "short" }, { k: "href" }, { k: "icon" }]} newItem={{ label: "", short: "", href: "", icon: "link" }} onChange={(v) => setProfile("links", v)} />
+          </Card>
+
+          <Card title="Résumé (PDF)">
+            <p className="text-[11px]" style={{ color: "var(--muted)" }}>
+              Pick a PDF and upload — it's committed to the repo, so Cloudflare Pages rebuilds and serves it at the path below. The "Résumé" buttons link to <b>Profile → résumé url</b> (currently <code>{draft.profile?.resumeUrl || "(unset)"}</code>); keep that in sync with what you upload (upload another path + point résumé url at it to switch which one is live).
+            </p>
+            <div className="flex flex-wrap items-end gap-3">
+              <label className="flex-1">
+                <span className="mb-1 block text-[11px] uppercase tracking-[0.14em]" style={{ color: "var(--muted)" }}>choose PDF</span>
+                <input type="file" accept="application/pdf,.pdf" onChange={(e) => setResumeFile(e.target.files?.[0] || null)} className="w-full text-xs" style={{ color: "var(--muted)" }} />
+              </label>
+              <div className="flex-1">
+                <Text label="commit path in repo" value={resumePath} onChange={setResumePath} />
+              </div>
+              <button
+                type="button"
+                onClick={uploadResume}
+                disabled={busy || !resumeFile}
+                className="cursor-pointer rounded-lg px-4 py-2 text-sm font-semibold"
+                style={{ background: resumeFile ? "var(--accent)" : "var(--border-2)", color: "#0b0911", opacity: busy ? 0.6 : 1 }}
+              >
+                Upload résumé
+              </button>
+            </div>
+            {resumeFile && <p className="text-[11px]" style={{ color: "var(--muted)" }}>selected: {resumeFile.name} · {(resumeFile.size / 1024).toFixed(0)} KB</p>}
           </Card>
 
           <Card title="Stats">
