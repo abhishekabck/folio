@@ -1,0 +1,23 @@
+# Cloudflare Pages headers — https://developers.cloudflare.com/pages/configuration/headers/
+
+# Hashed build assets are content-addressed and never change → cache hard.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Always revalidate the entry document so a new deploy shows up immediately.
+/
+  Cache-Control: public, max-age=0, must-revalidate
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Résumé: short cache so a re-upload appears quickly.
+/resume.pdf
+  Cache-Control: public, max-age=300
+
+# Baseline security headers for everything. (SAMEORIGIN still allows the Studio's own
+# same-origin preview iframe; no CSP here to avoid breaking WebGL / the GitHub API calls.)
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN
+  Permissions-Policy: geolocation=(), microphone=(), camera=()

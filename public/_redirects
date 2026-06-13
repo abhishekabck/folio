@@ -1,0 +1,5 @@
+# Cloudflare Pages redirects — https://developers.cloudflare.com/pages/configuration/redirects/
+# SPA fallback: any unknown path serves the app. Existing files (assets, favicon,
+# resume.pdf) are served directly and are NOT affected by this rule. Routing is
+# hash-based (#studio, #about) so this is just a safety net.
+/*    /index.html    200

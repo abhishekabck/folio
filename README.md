@@ -75,7 +75,8 @@ src/
 
 ## Deploy
 
-Static build — `npm run build` produces `dist/`, served by any static host (here: a
-self‑hosted nginx via a gitDeploy PaaS). To wire up the résumé buttons, add your
-`public/resume.pdf`. Code changes redeploy via your normal git push; content changes go
-live through the Studio without a redeploy.
+Static build — `npm run build` produces `dist/`, deployable to any static host. The
+recommended target is **Cloudflare Pages** (always‑on, auto‑builds on push) — see
+[`DEPLOY.md`](DEPLOY.md) for the full setup. Content changes go live through the Studio with
+no redeploy; code and résumé changes deploy on push. To wire up the résumé buttons, upload a
+PDF from the Studio (or add `public/resume.pdf` yourself).
