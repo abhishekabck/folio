@@ -1,0 +1,234 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #08070b;
+  --bg-soft: #0d0b14;
+  --surface: #14111e;
+  --surface-2: #1a1530;
+  --border: rgba(167, 139, 250, 0.14);
+  --border-2: #241d3a;
+  --text: #eceaf3;
+  --muted: #9a93ad;
+  --accent: #8b5cf6;
+  --accent-soft: #a78bfa;
+  --accent-deep: #7f72a9;
+  --glow: rgba(139, 92, 246, 0.45);
+  --live: #2fb39a;
+}
+
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+::selection {
+  background: rgba(139, 92, 246, 0.38);
+  color: #fff;
+}
+
+.font-display {
+  font-family: "Space Grotesk", system-ui, sans-serif;
+}
+
+/* gradient text for hero emphasis */
+.grad-text {
+  background: linear-gradient(115deg, #ffffff 0%, #d7ccff 38%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* gradient hairline border used on cards */
+.ring-grad {
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    linear-gradient(130deg, rgba(167, 139, 250, 0.45), rgba(167, 139, 250, 0.04) 45%, rgba(167, 139, 250, 0.28)) border-box;
+  border: 1px solid transparent;
+}
+
+/* ambient drifting blobs */
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(4%, -3%, 0) scale(1.1);
+  }
+}
+.blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(72px);
+  animation: drift 18s ease-in-out infinite;
+  will-change: transform;
+  pointer-events: none;
+}
+
+@keyframes pulseDot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(47, 179, 154, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(47, 179, 154, 0);
+  }
+}
+.pulse-dot {
+  animation: pulseDot 2s ease-in-out infinite;
+}
+
+::-webkit-scrollbar {
+  width: 11px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: #221c33;
+  border-radius: 10px;
+  border: 2px solid var(--bg);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #312745;
+}
+
+/* isometric architecture diagram */
+@keyframes isoFlow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+.iso-edge {
+  stroke-dasharray: 3 7;
+  animation: isoFlow 1.3s linear infinite;
+}
+@keyframes isoGlow {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.08);
+  }
+}
+.iso-glow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: isoGlow 2.6s ease-in-out infinite;
+}
+@keyframes isoFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+.iso-float {
+  animation: isoFloat 6s ease-in-out infinite;
+}
+@keyframes nodeSeq {
+  0% {
+    opacity: 0;
+  }
+  6% {
+    opacity: 0.9;
+  }
+  24% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.node-seq {
+  opacity: 0;
+  animation-name: nodeSeq;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes gateFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotateX(9deg) rotateZ(-2deg);
+  }
+  50% {
+    transform: translateY(-15px) rotateX(-7deg) rotateZ(2deg);
+  }
+}
+.gate-float {
+  animation-name: gateFloat;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  transform-style: preserve-3d;
+}
+
+/* designed avatar mark — orbital rings + floating monogram */
+@keyframes amSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes amSpinRev {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+@keyframes amFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+.spin-slow {
+  transform-origin: center;
+  animation: amSpin 32s linear infinite;
+}
+.spin-rev {
+  transform-origin: center;
+  animation: amSpinRev 24s linear infinite;
+}
+.spin-mid {
+  transform-origin: center;
+  animation: amSpin 17s linear infinite;
+}
+.mark-float {
+  animation: amFloat 7s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .blob,
+  .pulse-dot,
+  .iso-edge,
+  .iso-glow,
+  .iso-float,
+  .node-seq,
+  .gate-float,
+  .spin-slow,
+  .spin-rev,
+  .spin-mid,
+  .mark-float {
+    animation: none;
+  }
+}
