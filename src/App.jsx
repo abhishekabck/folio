@@ -787,12 +787,43 @@ function Work() {
   const trackX = useTransform(scrollYProgress, [0.24, 0.94], ["0vw", `-${(N - 1) * 100}vw`]);
   const [gateOpen, setGateOpen] = useState(false);
   const [activeIdx, setActiveIdx] = useState(-1); // centred project (for the bg dissolve)
+  const gateRef = useRef(false);
+  const lockRef = useRef({ active: false, y: 0 });
+  const lockTimer = useRef(0);
   useMotionValueEvent(scrollYProgress, "change", (v) => {
-    setGateOpen(v > 0.1 && v < 0.95); // closed entering AND exiting → auto opens/closes both ways
+    // gate open/close with a little hysteresis so it can't flicker at the threshold
+    const want = gateRef.current ? v > 0.08 && v < 0.96 : v > 0.1 && v < 0.95;
+    if (want !== gateRef.current) {
+      gateRef.current = want;
+      setGateOpen(want);
+      // LOCK the page scroll while the gate animation plays — nothing else scrolls until it
+      // finishes, so the gate fully OPENS/CLOSES before anything else moves (closes, then About).
+      lockRef.current = { active: true, y: window.scrollY };
+      clearTimeout(lockTimer.current);
+      lockTimer.current = setTimeout(() => { lockRef.current.active = false; }, 1250);
+    }
     const openNow = v >= 0.24 && v <= 0.95;
     const idx = openNow ? Math.min(N - 1, Math.max(0, Math.round(((v - 0.24) / 0.7) * (N - 1)))) : -1;
     setActiveIdx((prev) => (prev === idx ? prev : idx));
   });
+  // while the gate is animating, swallow scroll input and pin the position
+  useEffect(() => {
+    const block = (e) => { if (lockRef.current.active) e.preventDefault(); };
+    const pin = () => { if (lockRef.current.active) window.scrollTo(0, lockRef.current.y); };
+    const KEYS = new Set([" ", "Spacebar", "PageDown", "PageUp", "ArrowDown", "ArrowUp", "Home", "End"]);
+    const onKey = (e) => { if (lockRef.current.active && KEYS.has(e.key)) e.preventDefault(); };
+    window.addEventListener("wheel", block, { passive: false });
+    window.addEventListener("touchmove", block, { passive: false });
+    window.addEventListener("scroll", pin, { passive: true });
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("wheel", block);
+      window.removeEventListener("touchmove", block);
+      window.removeEventListener("scroll", pin);
+      window.removeEventListener("keydown", onKey);
+      clearTimeout(lockTimer.current);
+    };
+  }, []);
 
   // mobile / reduced-motion: a plain vertical stack (no scroll-jacking, no portal)
   if (!isDesktop || reduce) {
@@ -814,7 +845,7 @@ function Work() {
     <section id="work" ref={ref} className="relative" style={{ height: `${(N + 1.9) * 100}vh` }}>
       <div className="sticky top-0 h-screen overflow-hidden" style={{ perspective: 1500 }}>
         {/* INSIDE — the light world, revealed as the gate swings open + zoomed in */}
-        <motion.div className="absolute inset-0 z-10" animate={{ scale: gateOpen ? 1 : 1.12 }} transition={{ duration: 2.4, ease: gateEase }}>
+        <motion.div className="absolute inset-0 z-10" animate={{ scale: gateOpen ? 1 : 1.12 }} transition={{ duration: 1.4, ease: gateEase }}>
           <LightWorld />
           <motion.div className="relative flex h-full" style={{ x: trackX }}>
             {projects.map((p, i) => (
@@ -826,7 +857,7 @@ function Work() {
         <motion.div
           className="pointer-events-none absolute left-0 top-0 z-30 h-full w-1/2"
           animate={{ rotateY: gateOpen ? -100 : 0 }}
-          transition={{ duration: 2.4, ease: gateEase }}
+          transition={{ duration: 1.4, ease: gateEase }}
           style={{
             transformOrigin: "left center",
             backfaceVisibility: "hidden",
@@ -838,7 +869,7 @@ function Work() {
         <motion.div
           className="pointer-events-none absolute right-0 top-0 z-30 h-full w-1/2"
           animate={{ rotateY: gateOpen ? 100 : 0 }}
-          transition={{ duration: 2.4, ease: gateEase }}
+          transition={{ duration: 1.4, ease: gateEase }}
           style={{
             transformOrigin: "right center",
             backfaceVisibility: "hidden",
@@ -848,7 +879,7 @@ function Work() {
           }}
         />
         {/* TITLE + floating tech-icon tiles — fade out (NOT shrink) once the gate is ~40% open */}
-        <motion.div className="pointer-events-none absolute inset-0 z-40" animate={{ opacity: gateOpen ? 0 : 1 }} transition={{ duration: 0.45, delay: 0.25, ease: "linear" }}>
+        <motion.div className="pointer-events-none absolute inset-0 z-40" animate={{ opacity: gateOpen ? 0 : 1 }} transition={{ duration: 0.3, delay: 0.15, ease: "linear" }}>
           {/* soft fade so the gate's top edge melts into the section above — recedes with the gate */}
           <div className="absolute inset-x-0 top-0 h-[26vh]" style={{ background: "linear-gradient(to bottom, var(--bg) 0%, rgba(8,7,11,0.55) 42%, transparent 100%)" }} />
           <GateIcons />
