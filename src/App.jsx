@@ -383,7 +383,8 @@ function useIsDesktop() {
 }
 
 /* the project brief + architecture, shown inside each slide */
-function ProjectBody({ p, index, total, onDeepDive, diagramBare }) {
+function ProjectBody({ p, index, total, onDeepDive, diagramBare, bare }) {
+  const muted = bare ? "#cbc5d8" : "var(--muted)"; // lift the muted text once the card dissolves to glass
   const link = (href, content, key) => (
     <a
       key={key || href}
@@ -422,7 +423,7 @@ function ProjectBody({ p, index, total, onDeepDive, diagramBare }) {
                   <span className="mt-0.5 shrink-0" style={{ color: p.accent }}>
                     <Icon.check />
                   </span>
-                  <span style={{ color: "var(--muted)" }}>{f}</span>
+                  <span style={{ color: muted }}>{f}</span>
                 </li>
               ))}
             </ul>
@@ -505,21 +506,21 @@ function ProjectSlide({ p, index, total, active }) {
         className="relative flex h-[76vh] w-full max-w-[1240px] items-center overflow-hidden rounded-[2rem] px-8 md:px-12"
         style={{
           background: bare
-            ? "linear-gradient(180deg, rgba(15,12,23,0.5), rgba(10,8,17,0.54))"
+            ? "linear-gradient(180deg, rgba(14,11,21,0.66), rgba(9,7,15,0.72))"
             : "linear-gradient(180deg, rgba(21,18,31,0.92), rgba(15,12,23,0.94))",
-          border: bare ? "1px solid rgba(167,139,250,0.06)" : "1px solid rgba(167,139,250,0.16)",
+          border: bare ? "1px solid rgba(167,139,250,0.18)" : "1px solid rgba(167,139,250,0.16)",
           boxShadow: bare
-            ? "0 40px 120px -64px rgba(80,45,160,0.35)"
+            ? "0 40px 120px -52px rgba(80,45,160,0.55), inset 0 1px 0 rgba(255,255,255,0.06)"
             : "0 60px 140px -50px rgba(80,45,160,0.7), 0 0 0 1px rgba(255,255,255,0.03)",
-          backdropFilter: bare ? "blur(7px)" : "none",
-          WebkitBackdropFilter: bare ? "blur(7px)" : "none",
+          backdropFilter: bare ? "blur(14px)" : "none",
+          WebkitBackdropFilter: bare ? "blur(14px)" : "none",
           transition: "background 1s ease, border-color 1s ease, box-shadow 1s ease",
         }}
       >
         <span aria-hidden="true" className="font-display pointer-events-none absolute -top-7 right-2 select-none font-bold leading-none" style={{ fontSize: "min(34vh, 26vw)", color: p.accent, opacity: 0.06 }}>
           {String(index + 1).padStart(2, "0")}
         </span>
-        <ProjectBody p={p} index={index} total={total} onDeepDive={() => setOpen(true)} diagramBare={stage >= 1} />
+        <ProjectBody p={p} index={index} total={total} onDeepDive={() => setOpen(true)} diagramBare={stage >= 1} bare={bare} />
       </div>
       <ProjectModal p={p} index={index} total={total} open={open} onClose={() => setOpen(false)} />
     </div>
@@ -716,6 +717,8 @@ function ProjectModal({ p, index, total, open, onClose }) {
 
 /* gate intro: animated PROJECTS title you zoom through to get inside */
 function GateIntro() {
+  const { projects } = useContent();
+  const count = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"][projects.length] || String(projects.length);
   const letters = "PROJECTS".split("");
   return (
     <div className="px-6 text-center" style={{ perspective: 900 }}>
@@ -736,7 +739,7 @@ function GateIntro() {
         ))}
       </motion.h2>
       <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.85, duration: 0.6 }} className="mx-auto mt-6 max-w-md text-base" style={{ color: "var(--muted)" }}>
-        Four production systems — built, shipped, and self-hosted. Keep scrolling to step inside.
+        {count} production systems — built, shipped, and self-hosted. Keep scrolling to step inside.
       </motion.p>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.1 }} className="mt-9">
         <span className="font-display text-xs uppercase tracking-[0.3em]" style={{ color: "var(--muted)" }}>Enter ↓</span>
@@ -775,27 +778,18 @@ function Work() {
   const ref = useRef(null);
   const N = projects.length;
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  // all scroll-driven values up here (before any return) — rules of hooks
-  // transforms only (opacity MotionValues don't bind reliably here) — the inner
-  // world zooms open over the gate, then the track scrolls horizontally.
-  // 3D-immersive portal (transforms only). The inside rises + tilts up into view
-  // over the gate, then the track scrolls horizontally, then it all reverses on
-  // the way out to About. trackX only moves once fully inside → only the first
-  // project is visible as it opens.
-  // 3D gate: two doors swing open revealing the world behind, the title recedes
-  // into the opening, the first project zooms into place — all reverses on exit.
-  const doorL = useTransform(scrollYProgress, [0.05, 0.32, 0.78, 1], [0, -110, -110, 0]);
-  const doorR = useTransform(scrollYProgress, [0.05, 0.32, 0.78, 1], [0, 110, 110, 0]);
-  const titleScale = useTransform(scrollYProgress, [0, 0.22, 0.82, 1], [1, 0, 0, 1]);
-  const titleZ = useTransform(scrollYProgress, [0, 0.22, 0.82, 1], [0, -360, -360, 0]);
-  const innerScale = useTransform(scrollYProgress, [0.05, 0.34, 0.78, 1], [1.2, 1, 1, 1.2]);
-  const trackX = useTransform(scrollYProgress, [0.36, 0.74], ["0vw", `-${(N - 1) * 100}vw`]);
-  // which project is centred while the portal is open — used to dissolve its backgrounds
-  // once you pause on it (the timers in ProjectSlide only complete if it stays active).
-  const [activeIdx, setActiveIdx] = useState(-1);
+  // The GATE plays its full open/close as ONE timed animation, TRIGGERED by scroll (not
+  // scrubbed): scroll into the section past the threshold → the doors auto-swing fully open
+  // and the title recedes; scroll back above it → it auto-closes, all in one go. Only the
+  // horizontal project track stays scroll-driven. (Gate uses transform animations — opacity
+  // MotionValues don't bind reliably here.)
+  const trackX = useTransform(scrollYProgress, [0.24, 0.94], ["0vw", `-${(N - 1) * 100}vw`]);
+  const [gateOpen, setGateOpen] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(-1); // centred project (for the bg dissolve)
   useMotionValueEvent(scrollYProgress, "change", (v) => {
-    const openNow = v >= 0.355 && v <= 0.78;
-    const idx = openNow ? Math.min(N - 1, Math.max(0, Math.round(((v - 0.36) / 0.38) * (N - 1)))) : -1;
+    setGateOpen(v > 0.1 && v < 0.95); // closed entering AND exiting → auto opens/closes both ways
+    const openNow = v >= 0.24 && v <= 0.95;
+    const idx = openNow ? Math.min(N - 1, Math.max(0, Math.round(((v - 0.24) / 0.7) * (N - 1)))) : -1;
     setActiveIdx((prev) => (prev === idx ? prev : idx));
   });
 
@@ -803,7 +797,7 @@ function Work() {
   if (!isDesktop || reduce) {
     return (
       <section id="work" className="mx-auto max-w-6xl scroll-mt-24 px-6 py-24">
-        <Heading tag="Selected work" title="Systems I designed, built, and run." sub="Four production projects — three of them live right now, served from a single self-hosted home server." />
+        <Heading tag="Selected work" title="Systems I designed, built, and run." sub="Production systems I designed, built, and run — several serving live traffic from a single self-hosted home server." />
         <div className="grid gap-6">
           {projects.map((p, i) => (
             <ProjectCard key={`p-${i}`} p={p} index={i} />
@@ -819,7 +813,7 @@ function Work() {
     <section id="work" ref={ref} className="relative" style={{ height: `${(N + 1.9) * 100}vh` }}>
       <div className="sticky top-0 h-screen overflow-hidden" style={{ perspective: 1500 }}>
         {/* INSIDE — the light world, revealed as the gate swings open + zoomed in */}
-        <motion.div className="absolute inset-0 z-10" style={{ scale: innerScale }}>
+        <motion.div className="absolute inset-0 z-10" animate={{ scale: gateOpen ? 1 : 1.12 }} transition={{ duration: 0.9, ease }}>
           <LightWorld />
           <motion.div className="relative flex h-full" style={{ x: trackX }}>
             {projects.map((p, i) => (
@@ -830,8 +824,9 @@ function Work() {
         {/* GATE DOORS — two dark panels hinged at the outer edges that swing open */}
         <motion.div
           className="pointer-events-none absolute left-0 top-0 z-30 h-full w-1/2"
+          animate={{ rotateY: gateOpen ? -110 : 0 }}
+          transition={{ duration: 0.9, ease }}
           style={{
-            rotateY: doorL,
             transformOrigin: "left center",
             backfaceVisibility: "hidden",
             backgroundColor: "#08070d",
@@ -841,8 +836,9 @@ function Work() {
         />
         <motion.div
           className="pointer-events-none absolute right-0 top-0 z-30 h-full w-1/2"
+          animate={{ rotateY: gateOpen ? 110 : 0 }}
+          transition={{ duration: 0.9, ease }}
           style={{
-            rotateY: doorR,
             transformOrigin: "right center",
             backfaceVisibility: "hidden",
             backgroundColor: "#08070d",
@@ -851,7 +847,7 @@ function Work() {
           }}
         />
         {/* TITLE + floating tech-icon tiles — recede back into the opening gate */}
-        <motion.div className="pointer-events-none absolute inset-0 z-40" style={{ scale: titleScale, z: titleZ }}>
+        <motion.div className="pointer-events-none absolute inset-0 z-40" animate={{ scale: gateOpen ? 0 : 1, z: gateOpen ? -360 : 0 }} transition={{ duration: 0.9, ease }}>
           {/* soft fade so the gate's top edge melts into the section above — recedes with the gate */}
           <div className="absolute inset-x-0 top-0 h-[26vh]" style={{ background: "linear-gradient(to bottom, var(--bg) 0%, rgba(8,7,11,0.55) 42%, transparent 100%)" }} />
           <GateIcons />
