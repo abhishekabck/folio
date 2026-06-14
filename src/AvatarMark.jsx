@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useContent } from "./content-context";
 
 /* Designed avatar mark — an "AC" monogram at the centre of slowly counter-rotating
    orbital rings with glowing satellite nodes, on a themed backdrop. A nod to the
@@ -8,6 +9,9 @@ const SAT = [0, 70, 138, 210, 286];
 export default function AvatarMark() {
   const ref = useRef(null);
   const tilt = useRef(null);
+  const { profile } = useContent();
+  // monogram = first letters of the first two words of the name (falls back to "AC")
+  const initials = (profile.name || "").trim().split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "AC";
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const el = ref.current, t = tilt.current;
@@ -84,15 +88,15 @@ export default function AvatarMark() {
               boxShadow: "0 22px 54px -14px rgba(124,92,255,0.7), inset 0 1px 0 rgba(255,255,255,0.09)",
             }}
           >
-            <span className="font-display grad-text font-bold leading-none" style={{ fontSize: "clamp(2rem, 6.5vw, 3rem)", letterSpacing: "0.02em" }}>AC</span>
+            <span className="font-display grad-text font-bold leading-none" style={{ fontSize: "clamp(2rem, 6.5vw, 3rem)", letterSpacing: "0.02em" }}>{initials}</span>
           </div>
         </div>
       </div>
 
       {/* caption */}
       <div className="relative pb-5 text-center">
-        <div className="font-display text-sm font-semibold" style={{ color: "var(--text)" }}>Abhishek Chaurasiya</div>
-        <div className="mt-0.5 text-[11px] uppercase tracking-[0.18em]" style={{ color: "var(--muted)" }}>Full-stack Engineer</div>
+        <div className="font-display text-sm font-semibold" style={{ color: "var(--text)" }}>{profile.name}</div>
+        <div className="mt-0.5 text-[11px] uppercase tracking-[0.18em]" style={{ color: "var(--muted)" }}>{profile.role}</div>
       </div>
     </div>
   );
