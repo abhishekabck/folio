@@ -6,7 +6,7 @@ export const profile = {
   heroLead: "Full-stack engineer,",
   heroEm: "self-hosting the whole stack.",
   blurb:
-    "I design systems for the failure mode first, then build and run them end-to-end — an S3-compatible object store, a deployment PaaS, real-time backends — all live from my own home server. Three are serving traffic right now.",
+    "Third-year CS student and freelance backend engineer. I design for the failure mode first, then build and run systems end-to-end — an S3-compatible object store, a deployment PaaS, AI and real-time backends — Python-first, all live from my own home server.",
   email: "abhiabckchaurasiya@gmail.com",
   resumeUrl: "/resume.pdf",
   location: "India · served from a home server",
@@ -125,6 +125,52 @@ export const projects = [
     },
   },
   {
+    year: "2026",
+    title: "PicLocker",
+    kicker: "Semantic photo search",
+    accent: "#e0883c",
+    live: "",
+    tagline: "Natural-language photo search over my own self-hosted S3.",
+    summary:
+      "Type 'a screenshot' or 'a person on a beach' and the right photos come back. Each image is encoded into a 512-dim CLIP embedding and ranked against an in-RAM, L2-normalised matrix by cosine similarity — millisecond top-k, with a min-similarity threshold so out-of-library queries return empty instead of nearest-noise. Two-tier SHA-256 + perceptual-hash dedup and a crash-safe SQLite state machine make re-syncing a folder a cheap no-op.",
+    stack: ["Python", "CLIP · sentence-transformers", "NumPy", "imagehash (pHash)", "SQLite (WAL)", "boto3 · SigV4"],
+    links: [],
+    repo: "",
+    features: [
+      "512-dim CLIP embeddings, cosine top-k in RAM",
+      "Zero-shot tagging — no training, no labels",
+      "SHA-256 + perceptual-hash two-tier dedup",
+      "Crash-safe, idempotent folder re-sync",
+    ],
+    metrics: [
+      { v: "512d", l: "CLIP embeddings" },
+      { v: "0-shot", l: "tagging" },
+      { v: "82%", l: "ingest is I/O-bound" },
+    ],
+    deepDive: {
+      problem:
+        "Thousands of photos on a self-hosted store and no way to find anything by what's actually in them. Filenames and folders don't help, and training a classifier per concept doesn't scale.",
+      decisions: [
+        { h: "CLIP embeddings + cosine search", b: "Every photo becomes a 512-dim CLIP vector; free-text queries are ranked against an in-RAM, L2-normalised matrix by cosine similarity for millisecond top-k. A tuned min-similarity threshold makes out-of-library concepts return empty rather than the nearest noise." },
+        { h: "Zero-shot tagging, no labels", b: "Because CLIP shares an image–text embedding space, tags like 'a screenshot' or 'a person' resolve with no training and no labelled data — embeddings persist as ~2 KB float32 BLOBs (~20 MB per 10k photos)." },
+        { h: "Two-tier deduplication", b: "SHA-256 content hashing gives content-addressed keys so each photo is stored once; perceptual hashing (pHash + Hamming distance) catches near-duplicates like re-encodes and resizes under a configurable threshold." },
+        { h: "Profiled before parallelising", b: "Profiling showed ingest was 82% I/O-bound (upload) vs 14% CPU (CLIP) — so I parallelised with a thread pool over WAL-mode SQLite, reasoning from Python's GIL-release-on-I/O, instead of premature multiprocessing — cutting wall-clock ingest several-fold." },
+      ],
+      outcome: "Natural-language search over my own PersonalS3, built against the public AWS S3 API — including root-causing a botocore checksum-trailer incompatibility with the non-AWS server.",
+    },
+    arch: {
+      focal: "embed",
+      nodes: [
+        { id: "photos", x: 20, y: 30, label: "Photos", sub: "folder sync", c: "#8b7df6" },
+        { id: "s3", x: 20, y: 165, label: "PersonalS3", sub: "SigV4 · boto3", c: "#8b7df6" },
+        { id: "embed", x: 290, y: 97, label: "CLIP encode", sub: "512-dim vectors", c: "#2fb39a" },
+        { id: "index", x: 560, y: 30, label: "In-RAM index", sub: "cosine top-k", c: "#e2806b" },
+        { id: "dedup", x: 560, y: 165, label: "Dedup", sub: "SHA-256 · pHash", c: "#d4719a" },
+      ],
+      edges: [["photos", "embed"], ["s3", "embed"], ["embed", "index"], ["embed", "dedup"]],
+    },
+  },
+  {
     year: "2026 · freelance",
     title: "Niroskos",
     kicker: "Multilingual booking payments",
@@ -168,6 +214,52 @@ export const projects = [
         { id: "pay", x: 600, y: 165, label: "Payments app", sub: "atomic commit", c: "#d4719a" },
       ],
       edges: [["visitor", "price"], ["session", "price"], ["price", "redis"], ["price", "pay"]],
+    },
+  },
+  {
+    year: "2026 · team lead",
+    title: "Tender Intelligence",
+    kicker: "AI tender platform · team lead",
+    accent: "#4f86d6",
+    live: "",
+    tagline: "Scraping and scoring Indian government tenders with NLP.",
+    summary:
+      "A final-year platform that scrapes Indian government tender portals (GeM, CPPP), extracts eight structured fields from tender PDFs with spaCy NER, and scores a company's eligibility against each tender. LangChain + Ollama generate 300-word summaries and a scikit-learn RandomForest estimates win probability. I lead backend and NLP across a four-member, 16-week, 8-sprint plan.",
+    stack: ["FastAPI", "spaCy NER", "LangChain · Ollama", "PyMuPDF", "scikit-learn", "PostgreSQL", "React"],
+    links: [],
+    repo: "",
+    features: [
+      "Scrapes GeM & CPPP tender portals",
+      "8 structured fields from PDFs via spaCy NER",
+      "Multi-criteria eligibility scoring engine",
+      "RandomForest win-probability endpoint",
+    ],
+    metrics: [
+      { v: "5", l: "team (lead)" },
+      { v: "8", l: "fields per tender" },
+      { v: "16wk", l: "8-sprint plan" },
+    ],
+    deepDive: {
+      problem:
+        "MSMEs miss winnable government tenders buried across portals like GeM and CPPP — the documents are long PDFs, and judging eligibility by hand is slow and error-prone.",
+      decisions: [
+        { h: "NER extraction over raw PDFs", b: "A spaCy Named-Entity-Recognition pipeline with custom patterns pulls eight structured fields out of tender PDFs parsed with PyMuPDF, turning unstructured documents into queryable data." },
+        { h: "Eligibility scoring engine", b: "A multi-criteria engine compares a company profile against each tender — experience delta, turnover ratio, certifications, location proximity — to surface what's actually worth bidding on." },
+        { h: "LLM summaries + ML win-probability", b: "LangChain + Ollama produce 300-word tender summaries, and a scikit-learn RandomForest endpoint estimates win probability so effort goes to the highest-value bids." },
+        { h: "Led the architecture and the team", b: "I designed the system — DFDs, data models, API contracts — and coordinate a four-member team across an 8-sprint, 16-week plan with 84 tracked tasks." },
+      ],
+      outcome: "In active development — already scraping live government portals and extracting structured tender data.",
+    },
+    arch: {
+      focal: "ner",
+      nodes: [
+        { id: "portals", x: 20, y: 97, label: "Tender portals", sub: "GeM · CPPP", c: "#8b7df6" },
+        { id: "scrape", x: 250, y: 97, label: "Scraper", sub: "PDF fetch", c: "#8b7df6" },
+        { id: "ner", x: 480, y: 30, label: "spaCy NER", sub: "8 fields", c: "#2fb39a" },
+        { id: "score", x: 730, y: 30, label: "Eligibility", sub: "multi-criteria", c: "#e2806b" },
+        { id: "ml", x: 730, y: 165, label: "Win model", sub: "RandomForest", c: "#d4719a" },
+      ],
+      edges: [["portals", "scrape"], ["scrape", "ner"], ["ner", "score"], ["ner", "ml"]],
     },
   },
   {
@@ -219,17 +311,20 @@ export const projects = [
 ];
 
 export const craftGroups = [
-  { name: "Languages", items: "Python · C/C++ · Java · SQL · TypeScript · Go (AI-pair)" },
-  { name: "Backend & APIs", items: "Django · FastAPI · DRF · REST · S3 / SigV4 · WebSockets · asyncio · Celery" },
-  { name: "Data & caching", items: "PostgreSQL (JSONB · pg_trgm · SKIP LOCKED) · Redis / Valkey · MySQL · Typesense" },
-  { name: "DevOps & media", items: "Docker · Nginx · Cloudflare Tunnels · Linux · FFmpeg · HLS · AMD VA-API" },
-  { name: "Frontend & AI", items: "React · Next.js 15 · Tailwind · spaCy NER · LangChain · scikit-learn" },
+  { name: "Languages", items: "Python (proficient) · SQL · JavaScript · TypeScript · C · C++ · Java · Go (read / AI-pair)" },
+  { name: "Backend & APIs", items: "FastAPI · Django · DRF · REST · S3 / SigV4 · multipart · presigned URLs · WebSockets · asyncio · Celery · JWT" },
+  { name: "Data & caching", items: "PostgreSQL (JSONB · pg_trgm · SKIP LOCKED) · Redis / Valkey · SQLite (WAL) · MySQL · Typesense" },
+  { name: "DevOps & infra", items: "Docker · Nginx · Cloudflare Tunnels · Linux server admin · Git · Bash" },
+  { name: "Media & streaming", items: "FFmpeg · HLS · AMD VA-API encode · Pillow · WebP / AVIF · Web Audio API" },
+  { name: "AI / ML & frontend", items: "CLIP · sentence-transformers · vector search · spaCy NER · LangChain · scikit-learn · React · Next.js 15 · Tailwind" },
 ];
 
 export const quote = "Design for the failure mode first — the third design is the one that scales.";
 
 export const achievements = [
-  "LeetCode 536th worldwide (top 1.5%, Biweekly 177)",
-  "Codeforces Pupil · 400+ problems solved",
-  "AI Tender Intelligence Platform — team lead of 5 (FastAPI · spaCy NER · LangChain)",
+  "LeetCode 536th worldwide — top 1.5% (Biweekly 177, all 4 solved)",
+  "Codeforces Pupil (1223) · 400+ problems across LeetCode & Codeforces",
+  "Freelance Django developer at Niroskos — 3 apps, 10,000+ lines, 15+ locales",
+  "Team lead of 5 on an AI tender-intelligence platform (FastAPI · spaCy · LangChain)",
+  "2nd place — Quantum Computing workshop, Ignitia 2024",
 ];
