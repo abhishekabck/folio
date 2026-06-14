@@ -283,7 +283,13 @@ function Editor() {
               <Text label="availability" value={draft.profile?.availability} onChange={(v) => setProfile("availability", v)} />
               <Text label="location" value={draft.profile?.location} onChange={(v) => setProfile("location", v)} />
             </div>
-            <Text label="blurb (about)" area value={draft.profile?.blurb} onChange={(v) => setProfile("blurb", v)} />
+            <Text label="blurb (hero subtext)" area value={draft.profile?.blurb} onChange={(v) => setProfile("blurb", v)} />
+            <Text label="about (About-section paragraph)" area rows={4} value={draft.profile?.about} onChange={(v) => setProfile("about", v)} />
+            <div className="grid grid-cols-3 gap-3">
+              <Text label="education · degree" value={draft.profile?.education?.degree} onChange={(v) => setProfile("education", { ...(draft.profile?.education || {}), degree: v })} />
+              <Text label="education · school" value={draft.profile?.education?.school} onChange={(v) => setProfile("education", { ...(draft.profile?.education || {}), school: v })} />
+              <Text label="education · year" value={draft.profile?.education?.year} onChange={(v) => setProfile("education", { ...(draft.profile?.education || {}), year: v })} />
+            </div>
             <ListEditor label="links" items={draft.profile?.links} fields={[{ k: "label" }, { k: "short" }, { k: "href" }, { k: "icon" }]} newItem={{ label: "", short: "", href: "", icon: "link" }} onChange={(v) => setProfile("links", v)} />
           </Card>
 

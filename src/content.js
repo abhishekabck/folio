@@ -6,7 +6,14 @@ export const profile = {
   heroLead: "Full-stack engineer,",
   heroEm: "self-hosting the whole stack.",
   blurb:
-    "Third-year CS student and freelance backend engineer. I design for the failure mode first, then build and run systems end-to-end — an S3-compatible object store, a deployment PaaS, AI and real-time backends — Python-first, all live from my own home server.",
+    "Fourth-year CS student and freelance backend engineer. I design for the failure mode first, then build and run systems end-to-end — an S3-compatible object store, a deployment PaaS, AI and real-time backends — Python-first, all live from my own home server.",
+  about:
+    "I'm Abhishek — a fourth-year CS student and freelance backend engineer who self-hosts an entire production stack (object storage, a deployment PaaS, AI and real-time backends) on my own hardware, reachable worldwide through a Cloudflare Tunnel at $0/mo. I care most about the boring parts that decide whether a system survives: integrity, concurrency, and the failure path.",
+  education: {
+    degree: "B.Tech · Computer Science (Data Science)",
+    school: "Pranveer Singh Institute of Technology, Kanpur",
+    year: "4th year · 2023–2027",
+  },
   email: "abhiabckchaurasiya@gmail.com",
   resumeUrl: "/resume.pdf",
   location: "India · served from a home server",

@@ -883,9 +883,20 @@ function About() {
           <Heading tag="About" title="I take systems to their failure mode — then build the one that scales." />
           <Reveal delay={0.1}>
             <p className="max-w-xl text-sm leading-relaxed sm:text-base" style={{ color: "var(--muted)" }}>
-              I'm {profile.name}, a {profile.role.toLowerCase()} who self-hosts an entire production stack — object storage, a deployment PaaS, real-time backends — on my own hardware, exposed to the world through a Cloudflare Tunnel at $0/mo. I care most about the boring parts that decide whether a system survives: integrity, concurrency, and the failure path.
+              {profile.about}
             </p>
           </Reveal>
+          {profile.education?.degree && (
+            <Reveal delay={0.14}>
+              <div className="mt-6">
+                <div className="font-display text-[11px] font-semibold uppercase tracking-[0.2em]" style={{ color: "var(--accent-soft)" }}>Education</div>
+                <div className="mt-1.5 text-sm" style={{ color: "var(--text)" }}>{profile.education.degree}</div>
+                <div className="text-sm" style={{ color: "var(--muted)" }}>
+                  {profile.education.school}{profile.education.year ? ` · ${profile.education.year}` : ""}
+                </div>
+              </div>
+            </Reveal>
+          )}
           <Reveal delay={0.16}>
             <blockquote className="font-display mt-7 border-l-2 pl-5 text-lg italic leading-snug" style={{ borderColor: "var(--accent)", color: "var(--text)" }}>
               “{quote}”
