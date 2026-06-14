@@ -1,9 +1,9 @@
 {
   "profile": {
     "name": "Abhishek Chaurasiya",
-    "role": "Full-stack Engineer",
+    "role": "Software Engineer",
     "availability": "Open to internships & freelance — 2026",
-    "heroLead": "Full-stack engineer,",
+    "heroLead": "Software engineer,",
     "heroEm": "self-hosting the whole stack.",
     "blurb": "Fourth-year CS student and freelance backend engineer. I design for the failure mode first, then build and run systems end-to-end — an S3-compatible object store, a deployment PaaS, AI and real-time backends — Python-first, all live from my own home server.",
     "about": "I'm Abhishek — a fourth-year CS student and freelance backend engineer who self-hosts an entire production stack (object storage, a deployment PaaS, AI and real-time backends) on my own hardware, reachable worldwide through a Cloudflare Tunnel at $0/mo. I care most about the boring parts that decide whether a system survives: integrity, concurrency, and the failure path.",
