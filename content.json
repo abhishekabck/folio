@@ -1,0 +1,872 @@
+{
+  "profile": {
+    "name": "Abhishek Chaurasiya",
+    "role": "Full-stack Engineer",
+    "availability": "Open to internships & freelance — 2026",
+    "heroLead": "Full-stack engineer,",
+    "heroEm": "self-hosting the whole stack.",
+    "blurb": "Fourth-year CS student and freelance backend engineer. I design for the failure mode first, then build and run systems end-to-end — an S3-compatible object store, a deployment PaaS, AI and real-time backends — Python-first, all live from my own home server.",
+    "about": "I'm Abhishek — a fourth-year CS student and freelance backend engineer who self-hosts an entire production stack (object storage, a deployment PaaS, AI and real-time backends) on my own hardware, reachable worldwide through a Cloudflare Tunnel at $0/mo. I care most about the boring parts that decide whether a system survives: integrity, concurrency, and the failure path.",
+    "education": {
+      "degree": "B.Tech · Computer Science (Data Science)",
+      "school": "Pranveer Singh Institute of Technology, Kanpur",
+      "year": "4th year · 2023–2027"
+    },
+    "email": "abhiabckchaurasiya@gmail.com",
+    "resumeUrl": "/resume.pdf",
+    "location": "India · served from a home server",
+    "photo": "/abhishek-cutout.png",
+    "links": [
+      {
+        "label": "GitHub",
+        "short": "github.com/abhishekabck",
+        "href": "https://github.com/abhishekabck",
+        "icon": "github"
+      },
+      {
+        "label": "LinkedIn",
+        "short": "in/abhishek-chaurasiya",
+        "href": "https://linkedin.com/in/abhishekabck",
+        "icon": "linkedin"
+      },
+      {
+        "label": "personals3.tech",
+        "short": "personals3.tech",
+        "href": "https://personals3.tech",
+        "icon": "link"
+      },
+      {
+        "label": "gitdeploy.online",
+        "short": "gitdeploy.online",
+        "href": "https://gitdeploy.online",
+        "icon": "link"
+      }
+    ]
+  },
+  "stats": [
+    {
+      "value": "536th",
+      "label": "LeetCode worldwide · top 1.5%"
+    },
+    {
+      "value": "2,000",
+      "label": "concurrent users at 0% errors"
+    },
+    {
+      "value": "10+",
+      "label": "Docker services live, one server"
+    },
+    {
+      "value": "$0/mo",
+      "label": "infra — self-hosted, end to end"
+    }
+  ],
+  "projects": [
+    {
+      "year": "2026",
+      "title": "PersonalS3",
+      "kicker": "Object store & media platform",
+      "accent": "#8b5cf6",
+      "live": "https://personals3.tech",
+      "tagline": "Self-hosted, S3-compatible object store with a built-in HLS pipeline.",
+      "summary": "A production-live, S3-compatible object store with a built-in HLS media pipeline — ten Docker services on a single home server, global through a Cloudflare Tunnel. One SigV4 API serves AWS CLI, boto3, rclone, and my own ps3 CLI, with an adaptive Merkle-trie integrity engine that cut orphan detection from ~24 h to under 60 s at 100M-file scale.",
+      "stack": [
+        "Python",
+        "Go (AI-pair)",
+        "PostgreSQL",
+        "Valkey",
+        "FFmpeg · VA-API",
+        "Docker"
+      ],
+      "links": [
+        {
+          "label": "personals3.tech",
+          "href": "https://personals3.tech"
+        },
+        {
+          "label": "developer docs",
+          "href": "https://developers.personals3.tech"
+        }
+      ],
+      "repo": "",
+      "features": [
+        "One SigV4 API — AWS CLI, boto3, rclone & a ps3 CLI",
+        "Multipart + presigned URLs, per-part quota holds",
+        "Adaptive Merkle-trie integrity (24 h → < 60 s)",
+        "VA-API HLS transcoding to a 240/360/480p ladder"
+      ],
+      "metrics": [
+        {
+          "v": "10",
+          "l": "Docker services"
+        },
+        {
+          "v": "100M",
+          "l": "file scale"
+        },
+        {
+          "v": "<10ms",
+          "l": "cleaner tick"
+        }
+      ],
+      "deepDive": {
+        "problem": "An S3-compatible store has to stay byte-perfect at huge scale while a single home box does everything — sign requests, hold the bytes, and transcode media. A naive full integrity scan over 100M files would take the better part of a day, which is far too slow to trust.",
+        "decisions": [
+          {
+            "h": "One SigV4 surface for every client",
+            "b": "A single AWS Signature V4 API lets the AWS CLI, boto3, rclone and a hand-rolled ps3 CLI all talk to it unchanged — multipart uploads and presigned URLs included, with per-part quota holds so a half-finished upload can never overrun a bucket."
+          },
+          {
+            "h": "Adaptive Merkle-trie integrity engine",
+            "b": "Orphan and corruption detection runs over a Merkle-trie index that only rehashes the subtrees that actually changed, collapsing a full reconciliation from ~24 hours to under 60 seconds at 100M-file scale — each cleaner tick under 10 ms."
+          },
+          {
+            "h": "Hardware-accelerated HLS pipeline",
+            "b": "An FFmpeg worker transcodes uploads on the GPU via AMD VA-API into a 240/360/480p HLS ladder, so the same service that stores the bytes also serves adaptive video."
+          },
+          {
+            "h": "Ten services, zero exposed ports",
+            "b": "Ten Docker services run on one machine and reach the world through a Cloudflare Tunnel — no public IP, no open ports, no cloud bill."
+          }
+        ],
+        "outcome": "Production-live at personals3.tech, serving real S3 traffic from a home server at $0/mo of cloud spend."
+      },
+      "arch": {
+        "focal": "store",
+        "nodes": [
+          {
+            "id": "clients",
+            "x": 20,
+            "y": 30,
+            "label": "S3 clients",
+            "sub": "CLI · rclone · web",
+            "c": "#8b7df6"
+          },
+          {
+            "id": "api",
+            "x": 250,
+            "y": 30,
+            "label": "SigV4 API",
+            "sub": "multipart · presign",
+            "c": "#2fb39a"
+          },
+          {
+            "id": "store",
+            "x": 490,
+            "y": 30,
+            "label": "Object store",
+            "sub": "Merkle-trie index",
+            "c": "#e2806b"
+          },
+          {
+            "id": "delivery",
+            "x": 730,
+            "y": 30,
+            "label": "Delivery",
+            "sub": "HLS · WebP/AVIF",
+            "c": "#8b7df6"
+          },
+          {
+            "id": "worker",
+            "x": 490,
+            "y": 165,
+            "label": "FFmpeg worker",
+            "sub": "VA-API encode",
+            "c": "#d4719a"
+          }
+        ],
+        "edges": [
+          [
+            "clients",
+            "api"
+          ],
+          [
+            "api",
+            "store"
+          ],
+          [
+            "store",
+            "delivery"
+          ],
+          [
+            "api",
+            "worker"
+          ],
+          [
+            "worker",
+            "store"
+          ]
+        ]
+      }
+    },
+    {
+      "year": "2025–26",
+      "title": "gitDeploy",
+      "kicker": "Self-hosted deployment PaaS",
+      "accent": "#6366f1",
+      "live": "https://gitdeploy.online",
+      "tagline": "A GitHub repo in, a live container out — in one API call.",
+      "summary": "A production PaaS that clones a repo, builds the image, and runs the container from a single API call. Dynamic port allocation across 10k–65k with DB- and OS-level verification, per-app Nginx blocks hot-reloaded on every deploy, WebSocket-streamed logs and push metrics — all reachable with zero exposed ports behind a Cloudflare Tunnel.",
+      "stack": [
+        "FastAPI",
+        "Docker",
+        "WebSockets",
+        "Nginx",
+        "Cloudflare Tunnel",
+        "PostgreSQL"
+      ],
+      "links": [
+        {
+          "label": "gitdeploy.online",
+          "href": "https://gitdeploy.online"
+        }
+      ],
+      "repo": "https://github.com/abhishekabck/git_deploy",
+      "features": [
+        "Repo → image → running container in one API call",
+        "Dynamic ports 10k–65k, DB + OS-level verified",
+        "Per-app Nginx generated & hot-reloaded on deploy",
+        "WebSocket-streamed logs + push-model metrics"
+      ],
+      "metrics": [
+        {
+          "v": "1",
+          "l": "API call to deploy"
+        },
+        {
+          "v": "0",
+          "l": "exposed ports"
+        },
+        {
+          "v": "55k",
+          "l": "port range"
+        }
+      ],
+      "deepDive": {
+        "problem": "Shipping a repo normally means a fragile chain of manual steps — clone, build, pick a free port, write a reverse-proxy block, reload Nginx. Any step can drift out of sync, and two apps can silently collide on the same port.",
+        "decisions": [
+          {
+            "h": "Repo to running container in one call",
+            "b": "A single API call clones the repo, builds the image and starts the container, driven by an explicit state machine so every deploy follows the same verified path instead of an ad-hoc script."
+          },
+          {
+            "h": "Collision-free dynamic ports",
+            "b": "Ports are allocated across the 10k–65k range and checked at both the database and the OS level before they are handed out, so two apps can never be assigned the same port."
+          },
+          {
+            "h": "Generated Nginx, hot-reloaded",
+            "b": "Each app gets its own Nginx server block generated and hot-reloaded on every deploy — no hand-edited config and no downtime during the swap."
+          },
+          {
+            "h": "Live logs + push metrics, nothing exposed",
+            "b": "Build and run logs stream over WebSockets and apps report health on a push model, all behind a Cloudflare Tunnel with zero publicly exposed ports."
+          }
+        ],
+        "outcome": "Live at gitdeploy.online — push a repo, get back a running URL."
+      },
+      "arch": {
+        "focal": "api",
+        "nodes": [
+          {
+            "id": "push",
+            "x": 20,
+            "y": 97,
+            "label": "git push",
+            "sub": "any repo",
+            "c": "#8b7df6"
+          },
+          {
+            "id": "api",
+            "x": 250,
+            "y": 97,
+            "label": "gitDeploy API",
+            "sub": "one call",
+            "c": "#2fb39a"
+          },
+          {
+            "id": "build",
+            "x": 500,
+            "y": 30,
+            "label": "Docker build",
+            "sub": "state machine",
+            "c": "#e2806b"
+          },
+          {
+            "id": "ports",
+            "x": 500,
+            "y": 165,
+            "label": "Ports + Nginx",
+            "sub": "10k–65k · reload",
+            "c": "#d4719a"
+          },
+          {
+            "id": "live",
+            "x": 730,
+            "y": 97,
+            "label": "Live app",
+            "sub": "Cloudflare Tunnel",
+            "c": "#8b7df6"
+          }
+        ],
+        "edges": [
+          [
+            "push",
+            "api"
+          ],
+          [
+            "api",
+            "build"
+          ],
+          [
+            "build",
+            "ports"
+          ],
+          [
+            "ports",
+            "live"
+          ]
+        ]
+      }
+    },
+    {
+      "year": "2026",
+      "title": "PicLocker",
+      "kicker": "Semantic photo search",
+      "accent": "#e0883c",
+      "live": "",
+      "tagline": "Natural-language photo search over my own self-hosted S3.",
+      "summary": "Type 'a screenshot' or 'a person on a beach' and the right photos come back. Each image is encoded into a 512-dim CLIP embedding and ranked against an in-RAM, L2-normalised matrix by cosine similarity — millisecond top-k, with a min-similarity threshold so out-of-library queries return empty instead of nearest-noise. Two-tier SHA-256 + perceptual-hash dedup and a crash-safe SQLite state machine make re-syncing a folder a cheap no-op.",
+      "stack": [
+        "Python",
+        "CLIP · sentence-transformers",
+        "NumPy",
+        "imagehash (pHash)",
+        "SQLite (WAL)",
+        "boto3 · SigV4"
+      ],
+      "links": [],
+      "repo": "",
+      "features": [
+        "512-dim CLIP embeddings, cosine top-k in RAM",
+        "Zero-shot tagging — no training, no labels",
+        "SHA-256 + perceptual-hash two-tier dedup",
+        "Crash-safe, idempotent folder re-sync"
+      ],
+      "metrics": [
+        {
+          "v": "512d",
+          "l": "CLIP embeddings"
+        },
+        {
+          "v": "0-shot",
+          "l": "tagging"
+        },
+        {
+          "v": "82%",
+          "l": "ingest is I/O-bound"
+        }
+      ],
+      "deepDive": {
+        "problem": "Thousands of photos on a self-hosted store and no way to find anything by what's actually in them. Filenames and folders don't help, and training a classifier per concept doesn't scale.",
+        "decisions": [
+          {
+            "h": "CLIP embeddings + cosine search",
+            "b": "Every photo becomes a 512-dim CLIP vector; free-text queries are ranked against an in-RAM, L2-normalised matrix by cosine similarity for millisecond top-k. A tuned min-similarity threshold makes out-of-library concepts return empty rather than the nearest noise."
+          },
+          {
+            "h": "Zero-shot tagging, no labels",
+            "b": "Because CLIP shares an image–text embedding space, tags like 'a screenshot' or 'a person' resolve with no training and no labelled data — embeddings persist as ~2 KB float32 BLOBs (~20 MB per 10k photos)."
+          },
+          {
+            "h": "Two-tier deduplication",
+            "b": "SHA-256 content hashing gives content-addressed keys so each photo is stored once; perceptual hashing (pHash + Hamming distance) catches near-duplicates like re-encodes and resizes under a configurable threshold."
+          },
+          {
+            "h": "Profiled before parallelising",
+            "b": "Profiling showed ingest was 82% I/O-bound (upload) vs 14% CPU (CLIP) — so I parallelised with a thread pool over WAL-mode SQLite, reasoning from Python's GIL-release-on-I/O, instead of premature multiprocessing — cutting wall-clock ingest several-fold."
+          }
+        ],
+        "outcome": "Natural-language search over my own PersonalS3, built against the public AWS S3 API — including root-causing a botocore checksum-trailer incompatibility with the non-AWS server."
+      },
+      "arch": {
+        "focal": "embed",
+        "nodes": [
+          {
+            "id": "photos",
+            "x": 20,
+            "y": 30,
+            "label": "Photos",
+            "sub": "folder sync",
+            "c": "#8b7df6"
+          },
+          {
+            "id": "s3",
+            "x": 20,
+            "y": 165,
+            "label": "PersonalS3",
+            "sub": "SigV4 · boto3",
+            "c": "#8b7df6"
+          },
+          {
+            "id": "embed",
+            "x": 290,
+            "y": 97,
+            "label": "CLIP encode",
+            "sub": "512-dim vectors",
+            "c": "#2fb39a"
+          },
+          {
+            "id": "index",
+            "x": 560,
+            "y": 30,
+            "label": "In-RAM index",
+            "sub": "cosine top-k",
+            "c": "#e2806b"
+          },
+          {
+            "id": "dedup",
+            "x": 560,
+            "y": 165,
+            "label": "Dedup",
+            "sub": "SHA-256 · pHash",
+            "c": "#d4719a"
+          }
+        ],
+        "edges": [
+          [
+            "photos",
+            "embed"
+          ],
+          [
+            "s3",
+            "embed"
+          ],
+          [
+            "embed",
+            "index"
+          ],
+          [
+            "embed",
+            "dedup"
+          ]
+        ]
+      }
+    },
+    {
+      "year": "2026 · freelance",
+      "title": "Niroskos",
+      "kicker": "Multilingual booking payments",
+      "accent": "#d478c4",
+      "live": "",
+      "tagline": "The payments core of a multilingual travel-booking platform.",
+      "summary": "Architected the payments app from scratch — a session-as-cart checkout that writes nothing to the DB until confirm, with prices re-derived from one authoritative function through Redis at every render and again inside transaction.atomic() at commit, eliminating stale-price risk. 15+ locales, three Django apps, 10,000+ lines.",
+      "stack": [
+        "Django",
+        "DRF",
+        "Redis",
+        "PostgreSQL",
+        "i18n · 15+ locales"
+      ],
+      "links": [
+        {
+          "label": "about the role · LinkedIn",
+          "href": "https://linkedin.com/in/abhishek-chaurasiya-501547224"
+        }
+      ],
+      "repo": "",
+      "features": [
+        "Session-as-cart — no DB writes until confirm",
+        "Prices re-derived from one authoritative fn",
+        "Re-priced again inside transaction.atomic()",
+        "15+ locales · currency + region middleware"
+      ],
+      "metrics": [
+        {
+          "v": "15+",
+          "l": "locales"
+        },
+        {
+          "v": "10k+",
+          "l": "lines"
+        },
+        {
+          "v": "0",
+          "l": "stale prices"
+        }
+      ],
+      "deepDive": {
+        "problem": "A multilingual travel-booking checkout has to show the right price in the right currency across 15+ locales and must never charge a stale price — even when a cart is edited over a long, abandoned-then-resumed session.",
+        "decisions": [
+          {
+            "h": "Session-as-cart, nothing persisted early",
+            "b": "The cart lives entirely in the session and writes nothing to the database until the user confirms, so abandoned carts leave no rows to clean up and no half-states to reconcile."
+          },
+          {
+            "h": "One authoritative pricing function",
+            "b": "Every price — on each render and again at commit — is re-derived from a single pricing function rather than trusting any amount carried back from the client."
+          },
+          {
+            "h": "Re-priced inside transaction.atomic()",
+            "b": "At commit the total is recomputed one final time inside transaction.atomic(), through a pre-warmed Redis layer, eliminating stale-price and race-condition risk at the exact moment money changes hands."
+          },
+          {
+            "h": "Locale + currency middleware",
+            "b": "Region and currency are resolved in middleware across 15+ locales, spanning three Django apps and 10,000+ lines of code."
+          }
+        ],
+        "outcome": "The payments core of a live freelance multilingual travel platform."
+      },
+      "arch": {
+        "focal": "price",
+        "nodes": [
+          {
+            "id": "visitor",
+            "x": 20,
+            "y": 30,
+            "label": "Visitor",
+            "sub": "15+ locales",
+            "c": "#8b7df6"
+          },
+          {
+            "id": "session",
+            "x": 20,
+            "y": 165,
+            "label": "Session cart",
+            "sub": "intent only",
+            "c": "#8b7df6"
+          },
+          {
+            "id": "price",
+            "x": 310,
+            "y": 97,
+            "label": "Pricing fn",
+            "sub": "single source",
+            "c": "#2fb39a"
+          },
+          {
+            "id": "redis",
+            "x": 600,
+            "y": 30,
+            "label": "Redis",
+            "sub": "pre-warmed",
+            "c": "#e2806b"
+          },
+          {
+            "id": "pay",
+            "x": 600,
+            "y": 165,
+            "label": "Payments app",
+            "sub": "atomic commit",
+            "c": "#d4719a"
+          }
+        ],
+        "edges": [
+          [
+            "visitor",
+            "price"
+          ],
+          [
+            "session",
+            "price"
+          ],
+          [
+            "price",
+            "redis"
+          ],
+          [
+            "price",
+            "pay"
+          ]
+        ]
+      }
+    },
+    {
+      "year": "2026 · team lead",
+      "title": "Tender Intelligence",
+      "kicker": "AI tender platform · team lead",
+      "accent": "#4f86d6",
+      "live": "",
+      "tagline": "Scraping and scoring Indian government tenders with NLP.",
+      "summary": "A final-year platform that scrapes Indian government tender portals (GeM, CPPP), extracts eight structured fields from tender PDFs with spaCy NER, and scores a company's eligibility against each tender. LangChain + Ollama generate 300-word summaries and a scikit-learn RandomForest estimates win probability. I lead backend and NLP across a four-member, 16-week, 8-sprint plan.",
+      "stack": [
+        "FastAPI",
+        "spaCy NER",
+        "LangChain · Ollama",
+        "PyMuPDF",
+        "scikit-learn",
+        "PostgreSQL",
+        "React"
+      ],
+      "links": [],
+      "repo": "",
+      "features": [
+        "Scrapes GeM & CPPP tender portals",
+        "8 structured fields from PDFs via spaCy NER",
+        "Multi-criteria eligibility scoring engine",
+        "RandomForest win-probability endpoint"
+      ],
+      "metrics": [
+        {
+          "v": "5",
+          "l": "team (lead)"
+        },
+        {
+          "v": "8",
+          "l": "fields per tender"
+        },
+        {
+          "v": "16wk",
+          "l": "8-sprint plan"
+        }
+      ],
+      "deepDive": {
+        "problem": "MSMEs miss winnable government tenders buried across portals like GeM and CPPP — the documents are long PDFs, and judging eligibility by hand is slow and error-prone.",
+        "decisions": [
+          {
+            "h": "NER extraction over raw PDFs",
+            "b": "A spaCy Named-Entity-Recognition pipeline with custom patterns pulls eight structured fields out of tender PDFs parsed with PyMuPDF, turning unstructured documents into queryable data."
+          },
+          {
+            "h": "Eligibility scoring engine",
+            "b": "A multi-criteria engine compares a company profile against each tender — experience delta, turnover ratio, certifications, location proximity — to surface what's actually worth bidding on."
+          },
+          {
+            "h": "LLM summaries + ML win-probability",
+            "b": "LangChain + Ollama produce 300-word tender summaries, and a scikit-learn RandomForest endpoint estimates win probability so effort goes to the highest-value bids."
+          },
+          {
+            "h": "Led the architecture and the team",
+            "b": "I designed the system — DFDs, data models, API contracts — and coordinate a four-member team across an 8-sprint, 16-week plan with 84 tracked tasks."
+          }
+        ],
+        "outcome": "In active development — already scraping live government portals and extracting structured tender data."
+      },
+      "arch": {
+        "focal": "ner",
+        "nodes": [
+          {
+            "id": "portals",
+            "x": 20,
+            "y": 97,
+            "label": "Tender portals",
+            "sub": "GeM · CPPP",
+            "c": "#8b7df6"
+          },
+          {
+            "id": "scrape",
+            "x": 250,
+            "y": 97,
+            "label": "Scraper",
+            "sub": "PDF fetch",
+            "c": "#8b7df6"
+          },
+          {
+            "id": "ner",
+            "x": 480,
+            "y": 30,
+            "label": "spaCy NER",
+            "sub": "8 fields",
+            "c": "#2fb39a"
+          },
+          {
+            "id": "score",
+            "x": 730,
+            "y": 30,
+            "label": "Eligibility",
+            "sub": "multi-criteria",
+            "c": "#e2806b"
+          },
+          {
+            "id": "ml",
+            "x": 730,
+            "y": 165,
+            "label": "Win model",
+            "sub": "RandomForest",
+            "c": "#d4719a"
+          }
+        ],
+        "edges": [
+          [
+            "portals",
+            "scrape"
+          ],
+          [
+            "scrape",
+            "ner"
+          ],
+          [
+            "ner",
+            "score"
+          ],
+          [
+            "ner",
+            "ml"
+          ]
+        ]
+      }
+    },
+    {
+      "year": "2026",
+      "title": "URL shortener",
+      "kicker": "Redis-first backend",
+      "accent": "#38b6a8",
+      "live": "",
+      "tagline": "2,000 concurrent users at 0% errors on a 4-core home server.",
+      "summary": "Made Redis the primary source of truth and took the database out of the request path entirely — the same pool that crashed at 200 users now serves 2,000 concurrent at 0% errors and a 340 RPS peak. A write-behind sidecar SPOPs a dirty set and bulk-upserts to Postgres every 60 s, all while the box ran 14 other containers.",
+      "stack": [
+        "FastAPI",
+        "Redis",
+        "PostgreSQL",
+        "Gunicorn × Uvicorn",
+        "Docker",
+        "Locust"
+      ],
+      "links": [
+        {
+          "label": "view code",
+          "href": "https://github.com/abhishekabck/url-shortener"
+        }
+      ],
+      "repo": "https://github.com/abhishekabck/url-shortener",
+      "features": [
+        "Redis as source of truth — DB off the request path",
+        "Write-behind sidecar: SPOP → bulk upsert / 60 s",
+        "Gunicorn × 9 Uvicorn workers across all cores",
+        "Locust-tested under heavy concurrency"
+      ],
+      "metrics": [
+        {
+          "v": "2,000",
+          "l": "users"
+        },
+        {
+          "v": "0%",
+          "l": "errors"
+        },
+        {
+          "v": "340",
+          "l": "RPS peak"
+        }
+      ],
+      "deepDive": {
+        "problem": "The obvious design puts the database in the request path of every short-code hit. Under load that is exactly what breaks — the same connection pool fell over at just 200 concurrent users.",
+        "decisions": [
+          {
+            "h": "Redis as the source of truth",
+            "b": "Redis — not Postgres — became the primary store, taking the database out of the hot path entirely so both reads and writes are served from memory."
+          },
+          {
+            "h": "Write-behind sidecar for durability",
+            "b": "A sidecar SPOPs a dirty set and bulk-upserts to Postgres every 60 seconds, so nothing is lost while no request ever waits on a database write."
+          },
+          {
+            "h": "Every core saturated",
+            "b": "Gunicorn runs nine Uvicorn workers across all cores, fully using a 4-core box even while it was simultaneously running 14 other containers."
+          },
+          {
+            "h": "Proven under real load",
+            "b": "Locust-tested to 2,000 concurrent users at 0% errors and a 340 RPS peak — a 10× jump from the 200-user crash point."
+          }
+        ],
+        "outcome": "Open-source on GitHub — the rebuild that turned a 200-user crash into 2,000 users at zero errors."
+      },
+      "arch": {
+        "focal": "redis",
+        "nodes": [
+          {
+            "id": "client",
+            "x": 20,
+            "y": 30,
+            "label": "Client",
+            "sub": "short-code hit",
+            "c": "#8b7df6"
+          },
+          {
+            "id": "api",
+            "x": 250,
+            "y": 30,
+            "label": "FastAPI",
+            "sub": "9 async workers",
+            "c": "#2fb39a"
+          },
+          {
+            "id": "redis",
+            "x": 490,
+            "y": 30,
+            "label": "Redis",
+            "sub": "source of truth",
+            "c": "#e2806b"
+          },
+          {
+            "id": "sidecar",
+            "x": 490,
+            "y": 165,
+            "label": "Sidecar",
+            "sub": "SPOP · 60 s batch",
+            "c": "#d4719a"
+          },
+          {
+            "id": "pg",
+            "x": 730,
+            "y": 165,
+            "label": "PostgreSQL",
+            "sub": "persistence only",
+            "c": "#8b7df6"
+          }
+        ],
+        "edges": [
+          [
+            "client",
+            "api"
+          ],
+          [
+            "api",
+            "redis"
+          ],
+          [
+            "redis",
+            "sidecar"
+          ],
+          [
+            "sidecar",
+            "pg"
+          ]
+        ]
+      }
+    }
+  ],
+  "craftGroups": [
+    {
+      "name": "Languages",
+      "items": "Python (proficient) · SQL · JavaScript · TypeScript · C · C++ · Java · Go (read / AI-pair)"
+    },
+    {
+      "name": "Backend & APIs",
+      "items": "FastAPI · Django · DRF · REST · S3 / SigV4 · multipart · presigned URLs · WebSockets · asyncio · Celery · JWT"
+    },
+    {
+      "name": "Data & caching",
+      "items": "PostgreSQL (JSONB · pg_trgm · SKIP LOCKED) · Redis / Valkey · SQLite (WAL) · MySQL · Typesense"
+    },
+    {
+      "name": "DevOps & infra",
+      "items": "Docker · Nginx · Cloudflare Tunnels · Linux server admin · Git · Bash"
+    },
+    {
+      "name": "Media & streaming",
+      "items": "FFmpeg · HLS · AMD VA-API encode · Pillow · WebP / AVIF · Web Audio API"
+    },
+    {
+      "name": "AI / ML & frontend",
+      "items": "CLIP · sentence-transformers · vector search · spaCy NER · LangChain · scikit-learn · React · Next.js 15 · Tailwind"
+    }
+  ],
+  "quote": "Design for the failure mode first — the third design is the one that scales.",
+  "achievements": [
+    "LeetCode 536th worldwide — top 1.5% (Biweekly 177, all 4 solved)",
+    "Codeforces Pupil (1223) · 400+ problems across LeetCode & Codeforces",
+    "Freelance Django developer at Niroskos — 3 apps, 10,000+ lines, 15+ locales",
+    "Team lead of 5 on an AI tender-intelligence platform (FastAPI · spaCy · LangChain)",
+    "2nd place — Quantum Computing workshop, Ignitia 2024"
+  ]
+}
