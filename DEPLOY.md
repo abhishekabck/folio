@@ -25,10 +25,12 @@ so it works before you ever open the Studio.
 
 - `public/_headers` — long cache for hashed assets, always-revalidate for the entry doc, a
   short cache for `resume.pdf`, plus baseline security headers.
-- `public/_redirects` — SPA fallback so any path serves the app (routing is hash-based, so
-  this is just a safety net).
 
-No redirect rules are needed for `#studio` / `#about` (hash routes) or `?preview=1`.
+**SPA fallback is automatic** — Workers Static Assets (`wrangler deploy`) sets
+`not_found_handling: "single-page-application"`, and the app uses hash routes (`#studio`,
+`#about`) plus `?preview=1` anyway, so there is no `_redirects` file. (A `/* /index.html
+200` rule is actually rejected by the Workers `_redirects` validator as an infinite loop —
+hence it's omitted.)
 
 ## Editing content — the Studio
 
