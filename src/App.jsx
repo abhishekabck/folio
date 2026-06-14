@@ -49,6 +49,7 @@ const iconFor = (name) => Icon[name] || Icon.link;
 
 /* ---------------- motion helper ---------------- */
 const ease = [0.22, 1, 0.36, 1];
+const gateEase = [0.33, 0.33, 0.67, 0.67]; // linear — a steady, even gate swing (no slow-hold, no fast snap)
 function Reveal({ children, delay = 0, y = 22, className, style }) {
   return (
     <motion.div
@@ -813,7 +814,7 @@ function Work() {
     <section id="work" ref={ref} className="relative" style={{ height: `${(N + 1.9) * 100}vh` }}>
       <div className="sticky top-0 h-screen overflow-hidden" style={{ perspective: 1500 }}>
         {/* INSIDE — the light world, revealed as the gate swings open + zoomed in */}
-        <motion.div className="absolute inset-0 z-10" animate={{ scale: gateOpen ? 1 : 1.12 }} transition={{ duration: 0.9, ease }}>
+        <motion.div className="absolute inset-0 z-10" animate={{ scale: gateOpen ? 1 : 1.12 }} transition={{ duration: 2.4, ease: gateEase }}>
           <LightWorld />
           <motion.div className="relative flex h-full" style={{ x: trackX }}>
             {projects.map((p, i) => (
@@ -824,8 +825,8 @@ function Work() {
         {/* GATE DOORS — two dark panels hinged at the outer edges that swing open */}
         <motion.div
           className="pointer-events-none absolute left-0 top-0 z-30 h-full w-1/2"
-          animate={{ rotateY: gateOpen ? -110 : 0 }}
-          transition={{ duration: 0.9, ease }}
+          animate={{ rotateY: gateOpen ? -100 : 0 }}
+          transition={{ duration: 2.4, ease: gateEase }}
           style={{
             transformOrigin: "left center",
             backfaceVisibility: "hidden",
@@ -836,8 +837,8 @@ function Work() {
         />
         <motion.div
           className="pointer-events-none absolute right-0 top-0 z-30 h-full w-1/2"
-          animate={{ rotateY: gateOpen ? 110 : 0 }}
-          transition={{ duration: 0.9, ease }}
+          animate={{ rotateY: gateOpen ? 100 : 0 }}
+          transition={{ duration: 2.4, ease: gateEase }}
           style={{
             transformOrigin: "right center",
             backfaceVisibility: "hidden",
@@ -846,8 +847,8 @@ function Work() {
             boxShadow: "inset 2px 0 46px -10px rgba(139,92,246,0.42)",
           }}
         />
-        {/* TITLE + floating tech-icon tiles — recede back into the opening gate */}
-        <motion.div className="pointer-events-none absolute inset-0 z-40" animate={{ scale: gateOpen ? 0 : 1, z: gateOpen ? -360 : 0 }} transition={{ duration: 0.9, ease }}>
+        {/* TITLE + floating tech-icon tiles — fade out (NOT shrink) once the gate is ~40% open */}
+        <motion.div className="pointer-events-none absolute inset-0 z-40" animate={{ opacity: gateOpen ? 0 : 1 }} transition={{ duration: 0.45, delay: 0.25, ease: "linear" }}>
           {/* soft fade so the gate's top edge melts into the section above — recedes with the gate */}
           <div className="absolute inset-x-0 top-0 h-[26vh]" style={{ background: "linear-gradient(to bottom, var(--bg) 0%, rgba(8,7,11,0.55) 42%, transparent 100%)" }} />
           <GateIcons />
